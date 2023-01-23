@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #include "shoot.h"
 #include "utils.h"
 
