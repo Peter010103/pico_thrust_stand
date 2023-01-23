@@ -1,5 +1,6 @@
 #include "shoot.h"
 #include "utils.h"
+#include "Arduino.h"
 
 void setup()
 {

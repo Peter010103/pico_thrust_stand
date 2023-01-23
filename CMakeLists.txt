@@ -14,21 +14,11 @@ add_compile_options(-Wall
         -Wno-maybe-uninitialized
         )
 
-# file(GLOB FILES *.cpp *.h)
-# file(GLOB FILES ./*/*.cpp ./*/*.h)
-# file(GLOB FILES ./*/*/*.cpp ./*/*/*.h)
-
-# include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 pico_sdk_init()
 
-add_executable(${PROJECT_NAME} src/main.cpp)
-# target_link_libraries(${PROJECT_NAME} 
-#     ./lib/dshot/dshot.cpp ./lib/dshot/dshot.h
-#     ./lib/shoot/shoot.cpp ./lib/shoot/shoot.h
-#     ./lib/tts/tts.cpp ./lib/tts/tts.h
-#     ./lib/dshot/dshot.cpp ./lib/dshot/dshot.h
-# )
+SET(DSHOT_FILES ./lib/shoot/shoot.cpp ./lib/tts/tts.cpp ./lib/utils/utils.cpp ./lib/dshot/dshot.cpp)
 
+add_executable(${PROJECT_NAME} src/main.cpp ./include/arduino-pico/cores/rp2040/main.cpp ${DSHOT_FILES})
 
 include_directories(./lib/shoot)
 include_directories(./lib/tts)
@@ -41,9 +31,9 @@ include_directories(./include/pico-extras/src/rp2_common/lwip/include)
 include_directories(./include/arduino-pico/variants/rpipico)
 include_directories(./include/arduino-pico/pico-sdk/src/rp2_common/cmsis/stub/CMSIS/Device/RaspberryPi/RP2040/Include)
 include_directories(./include/arduino-pico/pico-sdk/src/rp2_common/cmsis/stub/CMSIS/Core/Include)
+include_directories(./include/arduino-pico/ArduinoCore-API/api)
 
 target_link_libraries(${PROJECT_NAME} pico_stdlib hardware_pwm hardware_dma hardware_pio hardware_exception pico_multicore)
-# target_include_directories(${PROJECT_NAME} PUBLIC ./include)
 
 pico_add_extra_outputs(${PROJECT_NAME})
 pico_enable_stdio_usb(${PROJECT_NAME} 1)

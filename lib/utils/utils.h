@@ -1,4 +1,5 @@
 #pragma once
+#include "Arduino.h"
 #include "hardware/pwm.h"
 
 namespace utils {
