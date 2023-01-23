@@ -1,0 +1,3 @@
+[submodule "include/arduino-pico"]
+	path = include/arduino-pico
+	url = git@github.com:earlephilhower/arduino-pico.git
