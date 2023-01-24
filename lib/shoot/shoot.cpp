@@ -18,8 +18,7 @@ void shoot::rt_setup() {
       tts::pico_alarm_pool, DMA_ALARM_PERIOD, shoot::repeating_send_dshot_frame,
       NULL, &shoot::send_frame_rt);
 
-  Serial.print("\nDMA Repeating Timer Setup: ");
-  Serial.print(shoot::dma_alarm_rt_state);
+  printf("\nDMA Repeating Timer Setup: %d", shoot::dma_alarm_rt_state);
 }
 
 void shoot::send_dshot_frame(bool debug) {
@@ -29,8 +28,7 @@ void shoot::send_dshot_frame(bool debug) {
   // TODO: add more verbose debugging
   // NOTE: caution as this function is executed as an interrupt service routine
   if (debug) {
-    Serial.print("Throttle Code: ");
-    Serial.println(shoot::throttle_code);
+    printf("Throttle Code: %i", shoot::throttle_code);
   }
 
   // IF DMA is busy, then write to temp_dma_buffer
