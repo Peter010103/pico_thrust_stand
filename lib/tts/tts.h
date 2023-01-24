@@ -1,8 +1,9 @@
 #pragma once
-#include "Arduino.h"
+#include <stdio.h>
 
 #include "hardware/dma.h"
 #include "hardware/pwm.h"
+#include "pico/stdlib.h"
 #include "pico/time.h"
 
 #include "config.h"
@@ -44,14 +45,5 @@ void print_dma_setup();
 
 // Create alarm pool
 extern alarm_pool_t *pico_alarm_pool;
-
-// Depracated
-
-/*! \brief Depracated print pwm config
- *
- *  This used to be used when a `pwm_config` variable was setup
- *  (analagous to `dma_config`)
- */
-void _print_pwm_setup(const pwm_config &conf);
 
 } // namespace tts

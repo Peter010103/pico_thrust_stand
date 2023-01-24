@@ -5,9 +5,11 @@
  */
 
 #pragma once
-#include "tts.h"
+#include <stdio.h>
+#include <string.h>
 
 #include "hardware/irq.h"
+#include "tts.h"
 
 namespace shoot {
 // TODO: Does this ever need to be volatile?

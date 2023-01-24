@@ -29,7 +29,8 @@
  *  WRAP = mcu freq / dshot freq. The factor of 1000 is for MHz -> kHz
  *  DEBUG = True sets WRAP to maximum value (2^16 - 1) to slow down the signal
  */
-constexpr uint16_t DSHOT_PWM_WRAP = DEBUG ? (1 << 16) - 1 : 1000 * MCU_FREQ / DSHOT_SPEED;
+constexpr uint16_t DSHOT_PWM_WRAP =
+    DEBUG ? (1 << 16) - 1 : 1000 * MCU_FREQ / DSHOT_SPEED;
 
 /*! \brief pwm clock divider increases the pwm period by this factor
  *
@@ -72,3 +73,5 @@ constexpr uint32_t DMA_ALARM_PERIOD = DEBUG ? 3000000 : 1000 / 7;
 constexpr uint16_t ZERO_THROTTLE = 48;  // 0 Throttle code
 constexpr uint16_t MAX_THROTTLE = 2047; // 2^12 - 1
 constexpr uint16_t ARM_THROTTLE = 300;  // < 50% MAX_THROTTLE
+
+constexpr uint LED_BUILTIN = 25;
