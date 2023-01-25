@@ -27,8 +27,10 @@ void update_signal(int &key_input) {
             if (shoot::throttle_code == MAX_THROTTLE) {
                 printf("Max Throttle reached\n");
             } else {
-                shoot::throttle_code += 1;
-                printf("Throttle: %i", shoot::throttle_code);
+                shoot::throttle_code += 50;
+                if (shoot::throttle_code > MAX_THROTTLE)
+                    shoot::throttle_code = MAX_THROTTLE;
+                printf("Throttle: %i\n", shoot::throttle_code - ZERO_THROTTLE);
             }
         } else {
             printf("Motor is not in throttle mode\n");
@@ -42,31 +44,48 @@ void update_signal(int &key_input) {
             if (shoot::throttle_code == ZERO_THROTTLE) {
                 printf("Throttle is zero\n");
             } else {
-                shoot::throttle_code -= 1;
-                printf("Throttle: %i", shoot::throttle_code);
+                shoot::throttle_code -= 50;
+                printf("Throttle: %i\n", shoot::throttle_code - ZERO_THROTTLE);
             }
         } else {
             printf("Motor is not in throttle mode\n");
         }
     }
 
-    // q - disarm
+    // spacebar - disarm
     if (key_input == 32) {
         shoot::throttle_code = ZERO_THROTTLE;
         shoot::telemetry = 0;
+        printf("Throttle: %i\n", 0);
+    }
+
     }
 
     shoot::send_dshot_frame();
-    printf("Finished processing byte.\n");
 }
 
 int main() {
     int32_t thrust;
     int key_input;
 
+    // Load cell calibration
+    int32_t zero_val = 150622;
+
     stdio_init_all();
+
     gpio_init(LED_BUILTIN);
     gpio_set_dir(LED_BUILTIN, GPIO_OUT);
+
+
+    for (int i = 0; i < 3; i++) {
+        gpio_put(LED_BUILTIN, 1);  // Set pin 25 to high
+        printf("LED ON!\n");
+        sleep_ms(1000);  // 0.5s delay
+
+        gpio_put(LED_BUILTIN, 0);  // Set pin 25 to low
+        printf("LED OFF!\n");
+        sleep_ms(1000);  // 0.5s delay
+    }
 
     printf("Setting up load cell\n");
     hx711_t hx;
@@ -96,10 +115,10 @@ int main() {
     while (1) {
         key_input = getchar_timeout_us(0);
         update_signal(key_input);
+        sleep_ms(100);
         if (hx711_get_value_noblock(&hx, &thrust)) {
-            printf("%li\n", thrust);
+            printf("%li\n", thrust - zero_val);
         }
-        utils::flash_led(LED_BUILTIN);
     }
 }
 

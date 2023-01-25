@@ -4,6 +4,11 @@
 #pragma once
 #include "inttypes.h"
 
+#include "pico/stdlib.h"
+#include "hardware/uart.h"
+#include "hardware/irq.h"
+
+
 // NOTE: The equivalent DSHOT speed is 8 Hz in DEBUG mode
 // This could be set here directly instead of changing:
 // DSHOT_PWM_WRAP, DSHOT_PWM_DIV, (DMA_ALARM_PERIOD)?
@@ -19,6 +24,12 @@
 #else
 #define MOTOR_GPIO 14
 #endif
+
+// Pin configurations
+constexpr uint LED_BUILTIN = 25;
+
+constexpr uint CLKPIN = 17;
+constexpr uint DATPIN = 16;
 
 // --- DMA Variables
 // Note that these should be cast uint32_t when sent to the slice
@@ -74,8 +85,3 @@ constexpr uint16_t ZERO_THROTTLE = 48;  // 0 Throttle code
 constexpr uint16_t MAX_THROTTLE = 2047; // 2^12 - 1
 constexpr uint16_t ARM_THROTTLE = 300;  // < 50% MAX_THROTTLE
 
-// Pin configurations
-constexpr uint LED_BUILTIN = 25;
-
-constexpr uint CLKPIN = 32;
-constexpr uint DATPIN = 31;
