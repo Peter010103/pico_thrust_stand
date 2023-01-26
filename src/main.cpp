@@ -59,8 +59,6 @@ void update_signal(int &key_input) {
         printf("Throttle: %i\n", 0);
     }
 
-    }
-
     shoot::send_dshot_frame();
 }
 
@@ -75,7 +73,6 @@ int main() {
 
     gpio_init(LED_BUILTIN);
     gpio_set_dir(LED_BUILTIN, GPIO_OUT);
-
 
     for (int i = 0; i < 3; i++) {
         gpio_put(LED_BUILTIN, 1);  // Set pin 25 to high
