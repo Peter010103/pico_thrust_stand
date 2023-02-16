@@ -7,3 +7,6 @@
 [submodule "lib/extern/Unity"]
 	path = lib/extern/Unity
 	url = https://github.com/ThrowTheSwitch/Unity.git
+[submodule "lib/micro_ros_raspberrypi_pico_sdk"]
+	path = lib/micro_ros_raspberrypi_pico_sdk
+	url = https://github.com/micro-ROS/micro_ros_raspberrypi_pico_sdk.git
