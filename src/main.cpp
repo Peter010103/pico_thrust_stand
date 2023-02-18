@@ -1,3 +1,5 @@
+#include <geometry_msgs/msg/vector3.h>
+#include <math.h>
 #include <rcl/error_handling.h>
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
@@ -5,7 +7,6 @@
 #include <rmw_microros/rmw_microros.h>
 #include <sensor_msgs/msg/battery_state.h>
 #include <sensor_msgs/msg/temperature.h>
-#include <std_msgs/msg/int32.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -20,11 +21,14 @@
 
 rcl_publisher_t temperature_pub;
 rcl_publisher_t battery_pub;
-rcl_publisher_t erpm_pub;
+rcl_publisher_t motor_pub;
 
 sensor_msgs__msg__Temperature temperature;
 sensor_msgs__msg__BatteryState battery;
-std_msgs__msg__Int32 erpm;
+
+// Define motor_state = [Force, Torque, omega(rad/s)].T
+geometry_msgs__msg__Vector3 motor_state;
+uint16_t erpm{0};
 
 void read_telem_uart() {
     while (uart_is_readable(UART_MOTOR_TELEMETRY)) {
@@ -131,14 +135,15 @@ int main() {
     rclc_publisher_init_default(
         &temperature_pub, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Temperature),
-        "temperature_publisher");
+        "temperature");
     rclc_publisher_init_default(
         &battery_pub, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
-        "battery_publisher");
+        "battery");
     rclc_publisher_init_default(
-        &erpm_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-        "erpm_publisher");
+        &motor_pub, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Vector3),
+        "motor_state");
 
     rclc_executor_init(&executor, &support.context, 1, &allocator);
 
@@ -215,13 +220,16 @@ int main() {
         battery.voltage = (float)(((uint16_t)(shoot::telem_buffer[1])) << 8 |
                                   (uint16_t)(shoot::telem_buffer[2])) /
                           100;
-        erpm.data = (((uint16_t)(shoot::telem_buffer[7])) << 8 |
-                     (uint16_t)(shoot::telem_buffer[8])) *
-                    100;
+
+        // Calculate the rotation in rad/s from eRPM telemetry
+        erpm = (((uint16_t)(shoot::telem_buffer[7])) << 8 |
+                (uint16_t)(shoot::telem_buffer[8])) *
+               100;
+        motor_state.z = erpm * 2 * M_PI / 60;
 
         printf("Temperature: %i\n", temperature.temperature);
         printf("Voltage: %.2f\n", battery.voltage);
-        printf("eRPM: %i\n", erpm.data);
+        printf("omega: %i\n", motor_state.z);
         // read_telem_uart();
     }
 }
