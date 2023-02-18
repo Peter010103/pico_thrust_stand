@@ -3,6 +3,8 @@
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
 #include <rmw_microros/rmw_microros.h>
+#include <sensor_msgs/msg/battery_state.h>
+#include <sensor_msgs/msg/temperature.h>
 #include <std_msgs/msg/int32.h>
 #include <stdio.h>
 #include <string.h>
@@ -16,8 +18,13 @@
 #include "shoot.h"
 #include "utils.h"
 
-rcl_publisher_t publisher;
-std_msgs__msg__Int32 msg;
+rcl_publisher_t temperature_pub;
+rcl_publisher_t battery_pub;
+rcl_publisher_t erpm_pub;
+
+sensor_msgs__msg__Temperature temperature;
+sensor_msgs__msg__BatteryState battery;
+std_msgs__msg__Int32 erpm;
 
 void read_telem_uart() {
     while (uart_is_readable(UART_MOTOR_TELEMETRY)) {
@@ -102,17 +109,42 @@ int main() {
     rcl_allocator_t allocator;
     rclc_support_t support;
     rclc_executor_t executor;
+
+    const int timeout_ms = 1000;
+    const uint8_t attempts = 120;
+
+    rcl_ret_t ret = rmw_uros_ping_agent(timeout_ms, attempts);
+
+    if (ret != RCL_RET_OK) {
+        while (true) {
+            utils::flash_led(LED_BUILTIN, 1);
+        }
+        // Unreachable agent, exiting program.
+        return ret;
+    }
+
     allocator = rcl_get_default_allocator();
 
     rclc_support_init(&support, 0, NULL, &allocator);
+    rclc_node_init_default(&node, "pico_node", "tts/", &support);
 
-    rclc_node_init_default(&node, "pico_node", "", &support);
     rclc_publisher_init_default(
-        &publisher, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-        "telem_publisher");
+        &temperature_pub, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Temperature),
+        "temperature_publisher");
+    rclc_publisher_init_default(
+        &battery_pub, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
+        "battery_publisher");
+    rclc_publisher_init_default(
+        &erpm_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+        "erpm_publisher");
+
     rclc_executor_init(&executor, &support.context, 1, &allocator);
 
-    msg.data = 0;
+    temperature.temperature = 0.0;
+    battery.voltage = 0.0;
+    erpm.data = 0;
 
     // Set MCU clock frequency. Should we assert this?
     set_sys_clock_khz(MCU_FREQ * 1e3, false);
@@ -175,15 +207,21 @@ int main() {
         if (key_input != PICO_ERROR_TIMEOUT) {
             update_signal(key_input);
         }
-        sleep_ms(100);
         if (hx711_get_value_noblock(&hx, &thrust) && thrust) {
             printf("hx711: %li\n", thrust - zero_val);
         }
-        rcl_ret_t rc = rcl_publish(&publisher, &msg, NULL);
 
-        if (rc != RCL_RET_OK) {
-            return -1;
-        }
+        temperature.temperature = shoot::telem_buffer[0];
+        battery.voltage = (float)(((uint16_t)(shoot::telem_buffer[1])) << 8 |
+                                  (uint16_t)(shoot::telem_buffer[2])) /
+                          100;
+        erpm.data = (((uint16_t)(shoot::telem_buffer[7])) << 8 |
+                     (uint16_t)(shoot::telem_buffer[8])) *
+                    100;
+
+        printf("Temperature: %i\n", temperature.temperature);
+        printf("Voltage: %.2f\n", battery.voltage);
+        printf("eRPM: %i\n", erpm.data);
         // read_telem_uart();
     }
 }

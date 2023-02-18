@@ -16,7 +16,7 @@
 #define UART_MOTOR_TELEMETRY uart0  // Note there are only two uarts available
 #define UART_MOTOR_IRQ UART0_IRQ    // NOTE: UART0 because above is uart0
 #define BAUDRATE_MOTOR_TELEMETRY 115200
-#define UART_TELEMETRY_PERIOD 1000000 // microseconds
+#define UART_TELEMETRY_PERIOD 1000000  // microseconds
 
 namespace shoot {
 // TODO: Does this ever need to be volatile?
@@ -27,6 +27,10 @@ extern uint32_t temp_dma_buffer[DSHOT_FRAME_LENGTH];
 // These are made global for now so that it is easy to modify
 extern uint16_t throttle_code;
 extern uint16_t telemetry;
+
+constexpr size_t telem_buffer_size = 10;
+volatile extern size_t telem_buffer_idx;
+volatile extern char telem_buffer[telem_buffer_size];
 
 extern uint16_t writes_to_temp_dma_buffer;
 extern uint16_t writes_to_dma_buffer;
@@ -80,4 +84,4 @@ bool repeating_uart_telem_req(struct repeating_timer *rt);
 void print_send_frame_rt_setup();
 void print_uart_telem_setup();
 
-} // namespace shoot
+}  // namespace shoot

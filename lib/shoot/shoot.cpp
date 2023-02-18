@@ -11,6 +11,9 @@ uint16_t shoot::telemetry = 0;
 uint16_t shoot::writes_to_dma_buffer = 0;
 uint16_t shoot::writes_to_temp_dma_buffer = 0;
 
+volatile size_t shoot::telem_buffer_idx = 0;
+volatile char shoot::telem_buffer[shoot::telem_buffer_size] = {0};
+
 bool shoot::_dma_alarm_rt_state = false;
 struct repeating_timer shoot::send_frame_rt;
 
@@ -85,13 +88,32 @@ void shoot::uart_telem_irq(void) {
 
   // Read uart
   while (uart_is_readable(UART_MOTOR_TELEMETRY)) {
-    printf("UART: %x\n", uart_getc(UART_MOTOR_TELEMETRY));
+    if (shoot::telem_buffer_idx == shoot::telem_buffer_size)
+    {
+      printf("Detected overflow in telem\n");
+    }else{
+      shoot::telem_buffer[telem_buffer_idx++] = uart_getc(UART_MOTOR_TELEMETRY);
+    }
+    // printf("UART: %x\n", shoot::telem_buffer[telem_buffer_idx-1]);
+    if (shoot::telem_buffer_idx == shoot::telem_buffer_size)
+    {
+      // TODO: CRC check
+      // printf("\n");
+    }
   }
 }
 
 bool shoot::repeating_uart_telem_req(struct repeating_timer *rt) {
   // Set telemetry
   shoot::telemetry = 1;
+
+  // Reset telemetry buffer and idx
+  for (unsigned int i = 0; i < shoot::telem_buffer_size; i++) {
+    shoot::telem_buffer[i] = 0;
+  }
+
+  shoot::telem_buffer_idx = 0;
+  // printf("Size of telem buffer: %i", sizeof(shoot::telem_buffer));
 
   // return true to repeat timer
   return true;
